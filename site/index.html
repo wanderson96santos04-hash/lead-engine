@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cidadania Italiana Online | Verificação Gratuita</title>
+  <meta
+    name="description"
+    content="Descubra em 1 minuto se você pode ter direito à cidadania italiana. Faça sua verificação gratuita e receba uma análise inicial."
+  />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#top" class="brand" aria-label="Cidadania Italiana Online">
+        <div class="brand-mark">
+          <span class="brand-mark-top"></span>
+          <span class="brand-mark-center"></span>
+          <span class="brand-mark-bottom"></span>
+        </div>
+
+        <div class="brand-text">
+          <strong>Cidadania Italiana</strong>
+          <span>Online</span>
+        </div>
+      </a>
+
+      <nav class="main-nav" aria-label="Menu principal">
+        <a href="#quiz">Cidadania Italiana</a>
+        <a href="#quiz">Quem tem direito</a>
+        <a href="#quiz">Documentos</a>
+        <a href="#quiz">Quanto custa</a>
+        <a href="#quiz">Contato</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="eyebrow">Análise inicial gratuita</span>
+
+          <h1>Descubra em 1 minuto se você tem direito à cidadania italiana</h1>
+
+          <p class="hero-text">
+            Milhões de brasileiros têm direito à cidadania italiana e não sabem.
+            Faça uma verificação gratuita agora.
+          </p>
+
+          <a href="#quiz" class="hero-cta">COMEÇAR ANÁLISE GRATUITA</a>
+
+          <div class="hero-trust">
+            <span>Atendimento especializado</span>
+            <span>Análise sem compromisso</span>
+            <span>Processo claro e objetivo</span>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-card-header">
+            <span class="hero-card-badge">Pré-análise</span>
+            <strong>Verificação rápida do seu caso</strong>
+          </div>
+
+          <ul class="hero-card-list">
+            <li>Entenda se existem indícios de direito à cidadania italiana</li>
+            <li>Saiba se seu caso merece análise mais aprofundada</li>
+            <li>Receba contato para orientação inicial</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="quiz-section" id="quiz">
+      <div class="container">
+        <div class="quiz-shell">
+          <div class="quiz-top">
+            <div>
+              <span id="progressText">Etapa 1 de 5</span>
+            </div>
+            <div>
+              <span>Leva menos de 1 minuto</span>
+            </div>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+
+          <div class="quiz-container">
+            <div class="step active" id="step1">
+              <span class="step-tag">Pergunta 1</span>
+              <h2>Você tem sobrenome italiano na família?</h2>
+              <p class="step-text">
+                Esse é um dos sinais iniciais que podem indicar uma possível ligação com a linhagem italiana.
+              </p>
+
+              <div class="answers">
+                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Sim', 2, this)">Sim</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Não', 2, this)">Não</button>
+              </div>
+            </div>
+
+            <div class="step" id="step2">
+              <span class="step-tag">Pergunta 2</span>
+              <h2>Algum antepassado nasceu na Itália?</h2>
+              <p class="step-text">
+                Mesmo em gerações mais antigas, essa informação pode ser relevante para uma análise inicial.
+              </p>
+
+              <div class="answers">
+                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Sim', 3, this)">Sim</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Não sei', 3, this)">Não sei</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Não', 3, this)">Não</button>
+              </div>
+            </div>
+
+            <div class="step" id="step3">
+              <span class="step-tag">Pergunta 3</span>
+              <h2>Você possui documentos da família?</h2>
+              <p class="step-text">
+                Certidões, registros e documentos antigos podem ajudar a acelerar o processo de avaliação.
+              </p>
+
+              <div class="answers">
+                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Sim', 4, this)">Sim</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Alguns', 4, this)">Alguns</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Nenhum', 4, this)">Nenhum</button>
+              </div>
+            </div>
+
+            <div class="step" id="step4">
+              <span class="step-tag">Pergunta 4</span>
+              <h2>Em qual estado você mora?</h2>
+              <p class="step-text">
+                Isso ajuda a organizar o atendimento inicial do seu caso.
+              </p>
+
+              <div class="field-group">
+                <input id="state" type="text" placeholder="Digite seu estado" />
+                <button type="button" class="primary-btn" onclick="nextStep()">Continuar</button>
+              </div>
+            </div>
+
+            <div class="step" id="step5">
+              <span class="step-tag">Última etapa</span>
+              <h2>Receba sua análise gratuita</h2>
+              <p class="step-text">
+                Preencha seus dados para que um especialista entre em contato com você.
+              </p>
+
+              <div class="field-group">
+                <input id="name" type="text" placeholder="Seu nome" />
+                <input id="phone" type="text" placeholder="Seu WhatsApp" />
+                <button type="button" class="primary-btn" onclick="sendLead()">Receber análise gratuita</button>
+              </div>
+
+              <p class="privacy-note">
+                Seus dados serão usados apenas para contato relacionado à sua análise.
+              </p>
+            </div>
+
+            <div id="success" class="success">
+              <div class="success-icon">✓</div>
+              <h2>Dados recebidos com sucesso</h2>
+              <p>
+                Em breve, um especialista poderá entrar em contato para dar continuidade à sua análise inicial.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/quiz.js"></script>
+</body>
+</html>
