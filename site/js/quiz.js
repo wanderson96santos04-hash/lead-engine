@@ -1,4 +1,5 @@
 const API_BASE_URL = "https://lead-engine-c8zg.onrender.com";
+const WHATSAPP_NUMBER = "5533999149440";
 
 let currentStep = 1;
 const totalSteps = 5;
@@ -95,6 +96,45 @@ function nextStep() {
   }
 }
 
+function buildWhatsAppMessage(name, phone) {
+  return `Novo lead - Cidadania Italiana
+
+Nome: ${name}
+Telefone: ${phone}
+Sobrenome italiano na família: ${quizAnswers.surname_italian || "-"}
+Antepassado nasceu na Itália: ${quizAnswers.ancestor_born_italy || "-"}
+Documentos da família: ${quizAnswers.family_documents || "-"}
+Estado: ${quizAnswers.state || "-"}
+`;
+}
+
+function openWhatsApp(name, phone) {
+  const message = buildWhatsAppMessage(name, phone);
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  window.open(url, "_blank");
+}
+
+async function saveLeadToBackend(name, phone) {
+  const response = await fetch(`${API_BASE_URL}/lead`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: name,
+      phone: phone,
+      quiz_answers: quizAnswers
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Erro ao enviar lead");
+  }
+
+  return await response.json();
+}
+
 async function sendLead() {
   if (isSubmitting) return;
 
@@ -125,21 +165,7 @@ async function sendLead() {
       submitButton.textContent = "Enviando...";
     }
 
-    const response = await fetch(`${API_BASE_URL}/lead`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: name,
-        phone: phone,
-        quiz_answers: quizAnswers
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error("Erro ao enviar lead");
-    }
+    await saveLeadToBackend(name, phone);
 
     const step5 = document.getElementById("step5");
     const success = document.getElementById("success");
@@ -158,6 +184,11 @@ async function sendLead() {
     }
 
     scrollToQuizTop();
+
+    setTimeout(() => {
+      openWhatsApp(name, phone);
+    }, 600);
+
   } catch (error) {
     console.error(error);
     alert("Erro ao enviar os dados.");

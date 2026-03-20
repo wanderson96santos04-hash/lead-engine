@@ -3,15 +3,21 @@ import re
 import sqlite3
 import requests
 import smtplib
+import ssl
+import logging
 
 from datetime import datetime
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.utils import formatdate
 
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+logger = logging.getLogger("lead-engine")
 
 app = FastAPI()
 
@@ -39,11 +45,12 @@ WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", "")
 WHATSAPP_DESTINO = os.getenv("WHATSAPP_DESTINO", "")
 
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-EMAIL_DESTINO = os.getenv("EMAIL_DESTINO", "")
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
+EMAIL_USER = (os.getenv("EMAIL_USER") or "").strip()
+EMAIL_PASS = (os.getenv("EMAIL_PASS") or "").strip()
+EMAIL_TO = (os.getenv("EMAIL_TO") or "").strip()
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 
 
 class QuizAnswers(BaseModel):
@@ -100,23 +107,31 @@ def clean_phone(phone: str) -> str:
 
 
 def format_lead_message(lead_data: dict) -> str:
-    return f"""NOVO LEAD - CIDADANIA ITALIANA
+    return f"""Novo Lead - Cidadania Italiana
 
 Nome: {lead_data.get("name", "-")}
 Telefone: {lead_data.get("phone", "-")}
-Sobrenome italiano na família: {lead_data.get("surname_italian", "-")}
+Tem sobrenome italiano: {lead_data.get("surname_italian", "-")}
 Antepassado nasceu na Itália: {lead_data.get("ancestor_born_italy", "-")}
-Documentos da família: {lead_data.get("family_documents", "-")}
+Possui documentos: {lead_data.get("family_documents", "-")}
 Estado: {lead_data.get("state", "-")}
 Data: {lead_data.get("created_at", "-")}
-
-Lead qualificado pronto para contato
 """.strip()
+
+
+def log_email_config_status():
+    logger.info(
+        "EMAIL CONFIG | EMAIL_USER=%s | EMAIL_PASS=%s | EMAIL_TO=%s | EMAIL_TIMEOUT=%s",
+        "OK" if EMAIL_USER else "MISSING",
+        "OK" if EMAIL_PASS else "MISSING",
+        "OK" if EMAIL_TO else "MISSING",
+        EMAIL_TIMEOUT,
+    )
 
 
 def send_whatsapp(lead_data: dict) -> bool:
     if not WHATSAPP_TOKEN or not PHONE_NUMBER_ID or not WHATSAPP_DESTINO:
-        print("WhatsApp não configurado. Pulando envio.")
+        logger.info("WhatsApp não configurado. Pulando envio.")
         return False
 
     mensagem = format_lead_message(lead_data)
@@ -138,48 +153,75 @@ def send_whatsapp(lead_data: dict) -> bool:
         response = requests.post(url, headers=headers, json=data, timeout=10)
 
         if response.status_code == 200:
-            print("WhatsApp enviado com sucesso")
+            logger.info("WhatsApp enviado com sucesso")
             return True
 
-        print("Erro ao enviar WhatsApp")
-        print(response.text)
+        logger.error("Erro ao enviar WhatsApp | status=%s | body=%s", response.status_code, response.text)
         return False
 
     except Exception as e:
-        print("Falha WhatsApp:", str(e))
+        logger.exception("Falha WhatsApp: %s", str(e))
         return False
 
 
-def send_email(lead_data: dict) -> bool:
-    if not SMTP_USER or not SMTP_PASSWORD or not EMAIL_DESTINO:
-        print("Email não configurado. Pulando envio.")
+def send_email_lead(lead_data: dict) -> bool:
+    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_TO:
+        logger.error(
+            "Email não configurado. Pulando envio. EMAIL_USER=%s EMAIL_PASS=%s EMAIL_TO=%s",
+            "OK" if EMAIL_USER else "MISSING",
+            "OK" if EMAIL_PASS else "MISSING",
+            "OK" if EMAIL_TO else "MISSING",
+        )
         return False
 
-    assunto = "Novo Lead Qualificado - Cidadania Italiana"
+    assunto = "Novo Lead - Cidadania Italiana"
     corpo = format_lead_message(lead_data)
+    server = None
 
     try:
         msg = MIMEMultipart()
-        msg["From"] = SMTP_USER
-        msg["To"] = EMAIL_DESTINO
+        msg["From"] = EMAIL_USER
+        msg["To"] = EMAIL_TO
         msg["Subject"] = assunto
+        msg["Date"] = formatdate(localtime=True)
         msg.attach(MIMEText(corpo, "plain", "utf-8"))
 
-        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.sendmail(SMTP_USER, EMAIL_DESTINO, msg.as_string())
-        server.quit()
+        context = ssl.create_default_context()
 
-        print("Email enviado com sucesso")
+        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=EMAIL_TIMEOUT)
+        server.ehlo()
+        server.starttls(context=context)
+        server.ehlo()
+        server.login(EMAIL_USER, EMAIL_PASS)
+        server.send_message(msg)
+
+        logger.info("Email enviado com sucesso")
         return True
 
-    except Exception as e:
-        print("Falha Email:", str(e))
+    except smtplib.SMTPAuthenticationError as e:
+        logger.exception("Erro ao enviar email: autenticação SMTP falhou: %s", str(e))
         return False
+    except smtplib.SMTPException as e:
+        logger.exception("Erro ao enviar email: falha SMTP: %s", str(e))
+        return False
+    except Exception as e:
+        logger.exception("Erro ao enviar email: %s", str(e))
+        return False
+    finally:
+        if server is not None:
+            try:
+                server.quit()
+            except Exception:
+                pass
 
 
 init_db()
+
+
+@app.on_event("startup")
+def startup_event():
+    logger.info("Aplicação iniciada com sucesso")
+    log_email_config_status()
 
 
 @app.get("/")
@@ -188,7 +230,7 @@ def healthcheck():
 
 
 @app.post("/lead")
-def receive_lead(lead: Lead):
+def receive_lead(lead: Lead, background_tasks: BackgroundTasks):
     quiz = lead.quiz_answers or QuizAnswers()
 
     lead_data = {
@@ -231,13 +273,13 @@ def receive_lead(lead: Lead):
     conn.close()
 
     whatsapp_ok = send_whatsapp(lead_data)
-    email_ok = send_email(lead_data)
+    background_tasks.add_task(send_email_lead, lead_data)
 
-    print("NOVO LEAD:", lead_data)
-    print(f"Envio WhatsApp: {whatsapp_ok} | Envio Email: {email_ok}")
+    logger.info("NOVO LEAD: %s", lead_data)
+    logger.info("Envio WhatsApp: %s | Email agendado: True", whatsapp_ok)
 
     return {
         "status": "success",
         "whatsapp_sent": whatsapp_ok,
-        "email_sent": email_ok,
+        "email_queued": True,
     }
