@@ -1,5 +1,6 @@
 import csv
 import html
+import json
 import os
 import re
 import unicodedata
@@ -7,9 +8,9 @@ from textwrap import dedent
 
 KEYWORDS_MAP_FILE = "../data/keywords_map.csv"
 OUTPUT_DIR = "../articles"
+SITE_URL = "https://analisecidadaniaitaliana.com/artigos"
 
 
-# WHITELIST FINAL: só gera artigos destes padrões
 APPROVED_KEYWORDS = {
     "cidadania italiana quanto custa",
     "cidadania italiana via judicial quanto custa",
@@ -154,7 +155,8 @@ article li{
 }
 .notice-box,
 .cta-box,
-.faq-box{
+.faq-box,
+.lead-box{
   border:1px solid var(--line);
   border-radius:20px;
   padding:24px;
@@ -165,14 +167,18 @@ article li{
   background:#f8fbf9;
   border-color:#d6eadf;
 }
-.cta-box{
+.cta-box,
+.lead-box{
   background:linear-gradient(180deg,#fff 0%,#f8fbf9 100%);
 }
 .cta-box h2,
-.faq-box h2{
+.faq-box h2,
+.lead-box h2,
+.lead-box h3{
   margin-top:0;
 }
-.cta-btn{
+.cta-btn,
+.lead-btn{
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -183,20 +189,6 @@ article li{
   color:#fff;
   font-weight:800;
   text-decoration:none;
-}
-.related-links{
-  display:grid;
-  gap:12px;
-}
-.related-links a{
-  display:block;
-  padding:14px 16px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  text-decoration:none;
-  color:var(--green-dark);
-  font-weight:700;
-  background:#fff;
 }
 footer{
   border-top:1px solid var(--line);
@@ -211,8 +203,10 @@ footer{
   article h3{font-size:20px}
   .header-inner{flex-direction:column;align-items:flex-start}
   .header-cta{width:100%}
+  .cta-btn,.lead-btn{width:100%}
 }
 """
+
 
 FAQ_BY_CLUSTER = {
     "eligibility": [
@@ -239,34 +233,6 @@ FAQ_BY_CLUSTER = {
         ("Como saber se meu caso vale a pena analisar?", "O melhor caminho é uma triagem inicial com perguntas objetivas sobre descendência, documentos e histórico familiar."),
         ("Toda família com origem italiana tem direito?", "Nem sempre. É necessário avaliar a linha de transmissão e a documentação."),
         ("A análise inicial é importante?", "Sim. Ela reduz erros, organiza os próximos passos e ajuda a medir o potencial real do caso."),
-    ],
-}
-
-RELATED_BY_CLUSTER = {
-    "eligibility": [
-        "quem tem direito à cidadania italiana",
-        "sobrenome italiano ajuda na cidadania",
-        "cidadania italiana por descendência",
-    ],
-    "documents": [
-        "documentos para cidadania italiana",
-        "certidões para cidadania italiana",
-        "retificação de documentos cidadania italiana",
-    ],
-    "process": [
-        "como tirar cidadania italiana",
-        "cidadania italiana no brasil",
-        "cidadania italiana na itália",
-    ],
-    "cost": [
-        "quanto custa cidadania italiana",
-        "vale a pena tirar cidadania italiana",
-        "cidadania italiana via judicial",
-    ],
-    "general": [
-        "cidadania italiana",
-        "como funciona cidadania italiana",
-        "quem tem direito cidadania italiana",
     ],
 }
 
@@ -317,21 +283,15 @@ def build_seo_title(keyword: str, intent: str) -> str:
 
 
 def build_meta_description(keyword: str, cluster: str) -> str:
-    base = (
-        f"Entenda {keyword}, veja pontos essenciais, erros comuns e descubra "
-        "quando vale a pena fazer uma análise gratuita do seu caso."
-    )
     if cluster == "cost":
-        base = (
-            f"Saiba como avaliar {keyword}, o que influencia custo, prazo e "
-            "viabilidade antes de iniciar o processo."
-        )
+        text = f"Saiba como avaliar {keyword}, o que influencia custo, prazo e viabilidade antes de iniciar o processo de cidadania italiana."
     elif cluster == "documents":
-        base = (
-            f"Entenda {keyword}, os documentos mais importantes, erros comuns e "
-            "o que observar antes da análise."
-        )
-    return base[:155]
+        text = f"Entenda {keyword}, veja os documentos mais importantes, erros comuns e o que observar antes de começar a análise."
+    elif cluster == "eligibility":
+        text = f"Descubra como avaliar {keyword}, quais sinais merecem atenção e quando vale a pena fazer uma análise inicial do caso."
+    else:
+        text = f"Entenda {keyword}, veja pontos essenciais, erros comuns e descubra quando vale a pena analisar seu caso."
+    return text[:155]
 
 
 def intro_paragraphs(keyword: str, cluster: str) -> list[str]:
@@ -454,6 +414,66 @@ def section_next_step(cluster: str) -> str:
     return mapping.get(cluster, mapping["general"])
 
 
+def build_lead_block_middle(cluster: str) -> str:
+    titles = {
+        "cost": "Descubra o custo real do seu caso",
+        "documents": "Veja se sua documentação tem potencial",
+        "eligibility": "Descubra se o seu caso pode ter direito",
+        "process": "Entenda qual caminho faz mais sentido",
+        "general": "Receba uma análise inicial gratuita",
+    }
+
+    descriptions = {
+        "cost": "Cada processo tem um custo diferente. O valor real depende da sua documentação, da linha familiar e da estratégia mais adequada.",
+        "documents": "Antes de gastar com certidões e retificações, vale entender se os seus documentos já mostram um bom potencial de avanço.",
+        "eligibility": "Ter sobrenome italiano ou origem familiar não basta sozinho. Uma análise inicial ajuda a separar curiosidade de oportunidade real.",
+        "process": "Nem todo caso deve seguir o mesmo caminho. Uma triagem inicial ajuda a evitar erros e economiza tempo.",
+        "general": "Uma análise inicial gratuita ajuda a identificar os próximos passos mais inteligentes para o seu caso.",
+    }
+
+    title = titles.get(cluster, titles["general"])
+    description = descriptions.get(cluster, descriptions["general"])
+
+    return f"""
+    <div class="lead-box">
+      <h3>{escape(title)}</h3>
+      <p>{escape(description)}</p>
+      <p><strong>Evite perder tempo e dinheiro com decisões feitas no escuro.</strong></p>
+      <a class="lead-btn" href="/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+    </div>
+    """
+
+
+def build_lead_block_final(cluster: str) -> str:
+    titles = {
+        "cost": "Antes de decidir pelo preço",
+        "documents": "Antes de sair pedindo documentos",
+        "eligibility": "Antes de concluir que tem ou não direito",
+        "process": "Antes de escolher o caminho do processo",
+        "general": "Antes de tomar qualquer decisão",
+    }
+
+    descriptions = {
+        "cost": "O erro mais comum é comparar valores sem analisar viabilidade. O custo certo só faz sentido quando o caso também tem chance real de avanço.",
+        "documents": "O erro mais comum é gastar com papéis sem saber o que realmente importa para a análise do caso.",
+        "eligibility": "O erro mais comum é confiar em sinais isolados e ignorar a força real da linha familiar e da documentação.",
+        "process": "O erro mais comum é seguir por pressa, sem avaliar qual estratégia é mais coerente com a realidade do caso.",
+        "general": "Uma análise inicial pode evitar retrabalho, reduzir erros e mostrar com mais clareza o melhor próximo passo.",
+    }
+
+    title = titles.get(cluster, titles["general"])
+    description = descriptions.get(cluster, descriptions["general"])
+
+    return f"""
+    <div class="lead-box">
+      <h2>{escape(title)}</h2>
+      <p>{escape(description)}</p>
+      <p>Responda poucas perguntas e receba uma triagem inicial gratuita para entender se vale a pena aprofundar o seu caso.</p>
+      <a class="lead-btn" href="/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+    </div>
+    """
+
+
 def build_faq_html(cluster: str) -> str:
     faqs = FAQ_BY_CLUSTER.get(cluster, FAQ_BY_CLUSTER["general"])
     items = []
@@ -476,24 +496,243 @@ def build_faq_html(cluster: str) -> str:
     """
 
 
-def build_related_links(cluster: str, current_keyword: str) -> str:
-    related = RELATED_BY_CLUSTER.get(cluster, RELATED_BY_CLUSTER["general"])
-    links = []
+def build_faq_schema(cluster: str) -> str:
+    faqs = FAQ_BY_CLUSTER.get(cluster, FAQ_BY_CLUSTER["general"])
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": q,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": a
+                }
+            }
+            for q, a in faqs
+        ]
+    }
+    return json.dumps(schema, ensure_ascii=False, indent=2)
 
-    for keyword in related:
-        if normalize_text(keyword) == normalize_text(current_keyword):
-            continue
-        slug = slugify(keyword)
-        links.append(f'<a href="{slug}.html">{escape(human_title(keyword))}</a>')
 
-    return f"""
-    <section>
-      <h2>Leituras relacionadas</h2>
-      <div class="related-links">
-        {''.join(links[:3])}
-      </div>
-    </section>
+def build_article_schema(title: str, seo_title: str, meta_description: str, canonical_url: str) -> str:
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": seo_title,
+        "name": title,
+        "description": meta_description,
+        "mainEntityOfPage": canonical_url,
+        "author": {
+            "@type": "Organization",
+            "name": "Cidadania Italiana Online"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Cidadania Italiana Online"
+        }
+    }
+    return json.dumps(schema, ensure_ascii=False, indent=2)
+
+
+def build_articles_index(rows: list[dict]) -> str:
+    cards = []
+
+    for row in rows:
+        title = human_title(row["keyword"])
+        slug = row["slug"]
+        intent = row.get("intent", "informational")
+        cluster = row.get("cluster", "general")
+
+        cards.append(f"""
+        <a class="article-card" href="{escape(slug)}.html">
+          <h2>{escape(title)}</h2>
+          <p>Conteúdo informativo sobre {escape(row["keyword"])} com foco em triagem inicial e geração de leads qualificados.</p>
+          <div class="card-meta">
+            <span>{escape(intent)}</span>
+            <span>{escape(cluster)}</span>
+          </div>
+        </a>
+        """)
+
+    index_css = """
+    :root{
+      --green:#1F7A4C;
+      --green-dark:#17603b;
+      --red:#C62828;
+      --off-white:#F5F7FA;
+      --text:#1F2933;
+      --text-soft:#52606D;
+      --line:#D9E2EC;
+      --white:#FFFFFF;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,Arial,sans-serif;
+      color:var(--text);
+      background:#fff;
+      line-height:1.7;
+    }
+    .container{
+      width:100%;
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 20px;
+    }
+    header{
+      background:var(--green);
+      color:#fff;
+      padding:18px 0;
+    }
+    .header-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .brand{
+      font-family:"Playfair Display",serif;
+      font-size:28px;
+      font-weight:700;
+    }
+    .brand span{
+      display:block;
+      font-family:Inter,Arial,sans-serif;
+      font-size:13px;
+      font-weight:600;
+      opacity:.9;
+    }
+    .header-cta{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:46px;
+      padding:0 18px;
+      border-radius:12px;
+      background:var(--red);
+      color:#fff;
+      text-decoration:none;
+      font-weight:700;
+    }
+    main{
+      padding:42px 0 60px;
+    }
+    h1{
+      font-family:"Playfair Display",serif;
+      font-size:44px;
+      line-height:1.1;
+      margin:0 0 14px;
+    }
+    .lead{
+      font-size:20px;
+      color:var(--text-soft);
+      margin:0 0 28px;
+      max-width:850px;
+    }
+    .articles-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:18px;
+    }
+    .article-card{
+      display:block;
+      text-decoration:none;
+      color:inherit;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:22px;
+      background:var(--off-white);
+      transition:.2s ease;
+    }
+    .article-card:hover{
+      transform:translateY(-2px);
+      border-color:#bfd3c7;
+    }
+    .article-card h2{
+      font-size:24px;
+      line-height:1.25;
+      margin:0 0 10px;
+      font-family:"Playfair Display",serif;
+      color:var(--text);
+    }
+    .article-card p{
+      margin:0 0 14px;
+      font-size:16px;
+      color:var(--text-soft);
+    }
+    .card-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .card-meta span{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      font-weight:700;
+      color:var(--text);
+    }
+    footer{
+      border-top:1px solid var(--line);
+      padding:28px 0 40px;
+      color:var(--text-soft);
+      font-size:14px;
+    }
+    @media (max-width: 640px){
+      h1{font-size:34px}
+      .lead{font-size:18px}
+      .header-inner{flex-direction:column;align-items:flex-start}
+      .header-cta{width:100%}
+    }
     """
+
+    index_html = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artigos sobre cidadania italiana</title>
+  <meta name="description" content="Página de artigos sobre cidadania italiana com foco em dúvidas comuns, documentos, custos e análise inicial." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="{SITE_URL}/index.html" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>{index_css}</style>
+</head>
+<body>
+  <header>
+    <div class="container header-inner">
+      <div class="brand">Cidadania Italiana<span>Online</span></div>
+      <a class="header-cta" href="https://analisecidadaniaitaliana.com/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1>Artigos sobre cidadania italiana</h1>
+    <p class="lead">
+      Conteúdos informativos para ajudar na triagem inicial, esclarecer dúvidas frequentes e gerar leads qualificados.
+    </p>
+
+    <section class="articles-grid">
+      {''.join(cards)}
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      Conteúdo informativo com foco em triagem inicial e educação do usuário sobre cidadania italiana.
+    </div>
+  </footer>
+</body>
+</html>
+"""
+    return dedent(index_html)
 
 
 def build_article_html(row: dict) -> str:
@@ -501,17 +740,22 @@ def build_article_html(row: dict) -> str:
     intent = row.get("intent", "informational")
     cluster = row.get("cluster", "general")
     priority = row.get("priority", "P3")
+    slug = row["slug"]
 
     seo_title = build_seo_title(keyword, intent)
     meta_description = build_meta_description(keyword, cluster)
     title = human_title(keyword)
+    canonical_url = f"{SITE_URL}/{slug}.html"
 
     intro = intro_paragraphs(keyword, cluster)
     key_points = section_key_points(cluster)
     mistakes = section_common_mistakes(cluster)
 
     faq_html = build_faq_html(cluster)
-    related_html = build_related_links(cluster, keyword)
+    faq_schema = build_faq_schema(cluster)
+    article_schema = build_article_schema(title, seo_title, meta_description, canonical_url)
+    lead_block_middle = build_lead_block_middle(cluster)
+    lead_block_final = build_lead_block_final(cluster)
 
     list_points_html = "".join([f"<li>{escape(item)}</li>" for item in key_points])
     mistakes_html = "".join([f"<li>{escape(item)}</li>" for item in mistakes])
@@ -524,23 +768,42 @@ def build_article_html(row: dict) -> str:
   <title>{escape(seo_title)}</title>
   <meta name="description" content="{escape(meta_description)}" />
   <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="{escape(canonical_url)}" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="{escape(seo_title)}" />
+  <meta property="og:description" content="{escape(meta_description)}" />
+  <meta property="og:url" content="{escape(canonical_url)}" />
+  <meta property="og:site_name" content="Cidadania Italiana Online" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{escape(seo_title)}" />
+  <meta name="twitter:description" content="{escape(meta_description)}" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
   <style>{BASE_CSS}</style>
+
+  <script type="application/ld+json">
+{article_schema}
+  </script>
+  <script type="application/ld+json">
+{faq_schema}
+  </script>
 </head>
 <body>
   <header>
     <div class="container header-inner">
       <div class="brand">Cidadania Italiana<span>Online</span></div>
-      <a class="header-cta" href="/">Fazer análise gratuita</a>
+      <a class="header-cta" href="https://analisecidadaniaitaliana.com/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
     </div>
   </header>
 
   <main class="container">
     <section class="hero">
       <div class="breadcrumb">
-        <a href="/">Início</a> / <span>{escape(title)}</span>
+        <a href="/">Início</a> / <a href="/artigos/index.html">Artigos</a> / <span>{escape(title)}</span>
       </div>
 
       <h1>{escape(title)}</h1>
@@ -561,6 +824,8 @@ def build_article_html(row: dict) -> str:
       <p>{escape(intro[0])}</p>
       <p>{escape(intro[1])}</p>
       <p>{escape(intro[2])}</p>
+
+      {lead_block_middle}
 
       <div class="notice-box">
         <h2>Resumo rápido</h2>
@@ -606,12 +871,12 @@ def build_article_html(row: dict) -> str:
         <p>
           Responda poucas perguntas e veja se existem sinais iniciais de viabilidade para a sua cidadania italiana.
         </p>
-        <a class="cta-btn" href="/">COMEÇAR ANÁLISE GRATUITA</a>
+        <a class="cta-btn" href="https://analisecidadaniaitaliana.com/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
       </div>
 
       {faq_html}
 
-      {related_html}
+      {lead_block_final}
     </article>
   </main>
 
@@ -695,6 +960,14 @@ def generate_articles() -> None:
             f'Artigo criado: {path} | '
             f'intent={row["intent"]} | cluster={row["cluster"]} | priority={row["priority"]}'
         )
+
+    index_html = build_articles_index(selected)
+    index_path = os.path.join(OUTPUT_DIR, "index.html")
+
+    with open(index_path, "w", encoding="utf-8") as file:
+        file.write(index_html)
+
+    print(f"Página de artigos criada: {index_path}")
 
 
 if __name__ == "__main__":
