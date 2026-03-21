@@ -51,13 +51,8 @@ def ensure_remote_dir(ftp: FTP_TLS, remote_dir: str) -> None:
         try:
             ftp.mkd(current)
             print(f"📁 Pasta criada: {current}")
-        except error_perm as e:
-            message = str(e).lower()
-            if "exist" in message or "file exists" in message:
-                pass
-            else:
-                # pasta já pode existir ou o servidor só recusou mkd por já existir
-                pass
+        except error_perm:
+            pass
 
 
 def upload_binary_content(ftp: FTP_TLS, content: bytes, remote_path: str) -> None:
@@ -98,25 +93,15 @@ def list_remote_articles(ftp: FTP_TLS) -> list[str]:
                 remote_files.append(name)
 
     except error_perm:
-        # pasta ainda não existe ou está vazia
         return []
 
     remote_files.sort()
     return remote_files
 
 
-def delete_remote_missing_articles(ftp: FTP_TLS, local_article_files: list[str]) -> None:
-    remote_article_files = list_remote_articles(ftp)
-    local_set = set(local_article_files)
-
-    for remote_file in remote_article_files:
-        if remote_file not in local_set:
-            remote_path = posixpath.join(REMOTE_ARTICLES_DIR, remote_file)
-            try:
-                ftp.delete(remote_path)
-                print(f"🗑️ Removido do servidor: {remote_path}")
-            except error_perm as e:
-                print(f"⚠️ Não foi possível remover {remote_path}: {e}")
+def merge_article_files(local_article_files: list[str], remote_article_files: list[str]) -> list[str]:
+    merged = sorted(set(local_article_files) | set(remote_article_files))
+    return merged
 
 
 def generate_sitemap(article_files: list[str]) -> str:
@@ -175,21 +160,27 @@ def upload_robots_txt(ftp: FTP_TLS) -> None:
 def publish() -> None:
     require_env()
 
-    article_files = list_local_articles()
+    local_article_files = list_local_articles()
 
-    if not article_files:
+    if not local_article_files:
         print("Nenhum artigo encontrado para publicar.")
         return
 
-    print(f"📰 {len(article_files)} artigos encontrados para publicação")
+    print(f"📰 {len(local_article_files)} artigos locais encontrados para publicação")
 
     ftp = connect_ftp()
     try:
         ensure_remote_dir(ftp, REMOTE_ARTICLES_DIR)
-        delete_remote_missing_articles(ftp, article_files)
-        upload_articles(ftp, article_files)
-        upload_sitemap(ftp, article_files)
+
+        remote_article_files = list_remote_articles(ftp)
+        print(f"🌐 {len(remote_article_files)} artigos já existem no servidor")
+
+        upload_articles(ftp, local_article_files)
+
+        sitemap_article_files = merge_article_files(local_article_files, remote_article_files)
+        upload_sitemap(ftp, sitemap_article_files)
         upload_robots_txt(ftp)
+
     finally:
         try:
             ftp.quit()

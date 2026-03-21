@@ -11,23 +11,6 @@ OUTPUT_DIR = "../articles"
 SITE_URL = "https://analisecidadaniaitaliana.com/artigos"
 
 
-APPROVED_KEYWORDS = {
-    "cidadania italiana quanto custa",
-    "cidadania italiana via judicial quanto custa",
-    "como tirar cidadania italiana quanto custa",
-    "como tirar cidadania italiana quais documentos",
-    "como tirar cidadania italiana sem documentos",
-    "documentos cidadania italiana como funciona",
-    "documentos cidadania italiana demora quanto tempo",
-    "documentos cidadania italiana no brasil",
-    "documentos cidadania italiana via judicial",
-    "documentos para cidadania italiana via judicial",
-    "quanto custa cidadania italiana por descendência",
-    "tirar cidadania italiana quanto custa",
-    "cidadania italiana quem tem direito",
-}
-
-
 BASE_CSS = """
 :root{
   --green:#1F7A4C;
@@ -153,6 +136,14 @@ article li{
   font-size:18px;
   margin-bottom:10px;
 }
+article a{
+  color:var(--green);
+  text-decoration:none;
+  font-weight:600;
+}
+article a:hover{
+  text-decoration:underline;
+}
 .notice-box,
 .cta-box,
 .faq-box,
@@ -186,7 +177,7 @@ article li{
   padding:0 22px;
   border-radius:12px;
   background:var(--red);
-  color:#fff;
+  color:#fff !important;
   font-weight:800;
   text-decoration:none;
 }
@@ -264,8 +255,32 @@ def human_title(keyword: str) -> str:
     return keyword[0].upper() + keyword[1:]
 
 
-def is_whitelisted_keyword(keyword: str) -> bool:
-    return normalize_text(keyword) in {normalize_text(k) for k in APPROVED_KEYWORDS}
+def is_valid_keyword_row(row: dict) -> bool:
+    keyword = normalize_text(row.get("keyword", ""))
+    slug = (row.get("slug") or "").strip()
+    intent = (row.get("intent") or "").strip()
+    cluster = (row.get("cluster") or "").strip()
+    priority = (row.get("priority") or "").strip()
+
+    if not keyword or not slug:
+        return False
+
+    if len(keyword) < 10:
+        return False
+
+    allowed_intents = {"commercial", "documents", "process", "qualification", "informational"}
+    allowed_clusters = {"eligibility", "documents", "process", "cost", "general", "local"}
+
+    if intent not in allowed_intents:
+        return False
+
+    if cluster not in allowed_clusters:
+        return False
+
+    if priority not in {"P1", "P2", "P3"}:
+        return False
+
+    return True
 
 
 def build_seo_title(keyword: str, intent: str) -> str:
@@ -536,6 +551,52 @@ def build_article_schema(title: str, seo_title: str, meta_description: str, cano
     return json.dumps(schema, ensure_ascii=False, indent=2)
 
 
+def build_related_articles_html(current_row: dict, all_rows: list[dict], limit: int = 3) -> str:
+    related = []
+
+    current_slug = current_row["slug"]
+    current_cluster = current_row.get("cluster", "general")
+
+    same_cluster = [
+        row for row in all_rows
+        if row["slug"] != current_slug and row.get("cluster", "general") == current_cluster
+    ]
+
+    other_cluster = [
+        row for row in all_rows
+        if row["slug"] != current_slug and row.get("cluster", "general") != current_cluster
+    ]
+
+    ordered = same_cluster + other_cluster
+
+    seen = set()
+    for row in ordered:
+        if row["slug"] not in seen:
+            seen.add(row["slug"])
+            related.append(row)
+        if len(related) >= limit:
+            break
+
+    if not related:
+        return ""
+
+    items = []
+    for row in related:
+        items.append(
+            f'<li><a href="{escape(row["slug"])}.html">{escape(human_title(row["keyword"]))}</a></li>'
+        )
+
+    return f"""
+    <section class="notice-box">
+      <h2>Leia também</h2>
+      <p>Veja outros conteúdos relacionados que podem ajudar na sua análise inicial:</p>
+      <ul>
+        {''.join(items)}
+      </ul>
+    </section>
+    """
+
+
 def build_articles_index(rows: list[dict]) -> str:
     cards = []
 
@@ -735,7 +796,7 @@ def build_articles_index(rows: list[dict]) -> str:
     return dedent(index_html)
 
 
-def build_article_html(row: dict) -> str:
+def build_article_html(row: dict, all_rows: list[dict]) -> str:
     keyword = row["keyword"]
     intent = row.get("intent", "informational")
     cluster = row.get("cluster", "general")
@@ -756,6 +817,7 @@ def build_article_html(row: dict) -> str:
     article_schema = build_article_schema(title, seo_title, meta_description, canonical_url)
     lead_block_middle = build_lead_block_middle(cluster)
     lead_block_final = build_lead_block_final(cluster)
+    related_articles_html = build_related_articles_html(row, all_rows)
 
     list_points_html = "".join([f"<li>{escape(item)}</li>" for item in key_points])
     mistakes_html = "".join([f"<li>{escape(item)}</li>" for item in mistakes])
@@ -874,6 +936,8 @@ def build_article_html(row: dict) -> str:
         <a class="cta-btn" href="https://analisecidadaniaitaliana.com/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
       </div>
 
+      {related_articles_html}
+
       {faq_html}
 
       {lead_block_final}
@@ -907,61 +971,54 @@ def load_keywords_map() -> list[dict]:
             if not keyword or not slug:
                 continue
 
-            rows.append(
-                {
-                    "keyword": keyword,
-                    "slug": slug,
-                    "intent": (row.get("intent") or "informational").strip(),
-                    "cluster": (row.get("cluster") or "general").strip(),
-                    "priority": (row.get("priority") or "P3").strip(),
-                    "score": (row.get("score") or "0").strip(),
-                }
-            )
+            parsed_row = {
+                "keyword": keyword,
+                "slug": slugify(slug or keyword),
+                "intent": (row.get("intent") or "informational").strip(),
+                "cluster": (row.get("cluster") or "general").strip(),
+                "priority": (row.get("priority") or "P3").strip(),
+                "score": (row.get("score") or "0").strip(),
+            }
+
+            if is_valid_keyword_row(parsed_row):
+                rows.append(parsed_row)
+
     return rows
-
-
-def clear_existing_articles() -> None:
-    if not os.path.exists(OUTPUT_DIR):
-        return
-
-    for file_name in os.listdir(OUTPUT_DIR):
-        if file_name.endswith(".html"):
-            try:
-                os.remove(os.path.join(OUTPUT_DIR, file_name))
-            except OSError:
-                pass
 
 
 def generate_articles() -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    clear_existing_articles()
 
     keyword_rows = load_keywords_map()
-
-    selected = [
-        row for row in keyword_rows
-        if is_whitelisted_keyword(row["keyword"])
-    ]
-
-    selected.sort(key=lambda row: normalize_text(row["keyword"]))
+    selected = sorted(
+        keyword_rows,
+        key=lambda row: (
+            {"P1": 1, "P2": 2, "P3": 3}.get(row["priority"], 9),
+            normalize_text(row["keyword"]),
+        ),
+    )
 
     if not selected:
         print("Nenhuma keyword aprovada encontrada no keywords_map.csv.")
         return
 
+    generated_rows = []
+
     for row in selected:
-        article_html = build_article_html(row)
+        article_html = build_article_html(row, selected)
         path = os.path.join(OUTPUT_DIR, f'{row["slug"]}.html')
 
         with open(path, "w", encoding="utf-8") as file:
             file.write(article_html)
+
+        generated_rows.append(row)
 
         print(
             f'Artigo criado: {path} | '
             f'intent={row["intent"]} | cluster={row["cluster"]} | priority={row["priority"]}'
         )
 
-    index_html = build_articles_index(selected)
+    index_html = build_articles_index(generated_rows)
     index_path = os.path.join(OUTPUT_DIR, "index.html")
 
     with open(index_path, "w", encoding="utf-8") as file:

@@ -100,63 +100,65 @@
           <div class="quiz-container">
             <div class="step active" id="step1">
               <span class="step-tag">Pergunta 1</span>
-              <h2>Você tem sobrenome italiano na família?</h2>
+              <h2>Quando você gostaria de iniciar seu processo de cidadania?</h2>
               <p class="step-text">
-                Esse é um dos sinais iniciais que podem indicar uma possível ligação com a linhagem italiana.
+                Isso ajuda a entender seu momento e o nível de urgência do seu caso.
               </p>
 
               <div class="answers">
-                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Sim', 2, this)">Sim</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Não', 2, this)">Não</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Imediatamente', 2, this)">Imediatamente</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Nos próximos 3 meses', 2, this)">Nos próximos 3 meses</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Ainda estou pesquisando', 2, this)">Ainda estou pesquisando</button>
               </div>
             </div>
 
             <div class="step" id="step2">
               <span class="step-tag">Pergunta 2</span>
-              <h2>Algum antepassado nasceu na Itália?</h2>
+              <h2>O processo pode variar entre R$5.000 e R$20.000. Você tem interesse em investir nesse valor?</h2>
               <p class="step-text">
-                Mesmo em gerações mais antigas, essa informação pode ser relevante para uma análise inicial.
+                Essa informação ajuda a identificar se faz sentido avançar para uma orientação mais detalhada.
               </p>
 
               <div class="answers">
                 <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Sim', 3, this)">Sim</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Não sei', 3, this)">Não sei</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Estou me planejando', 3, this)">Estou me planejando</button>
                 <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Não', 3, this)">Não</button>
               </div>
             </div>
 
             <div class="step" id="step3">
               <span class="step-tag">Pergunta 3</span>
-              <h2>Você possui documentos da família?</h2>
+              <h2>Você já possui documentos ou informações sobre seus antepassados?</h2>
               <p class="step-text">
-                Certidões, registros e documentos antigos podem ajudar a acelerar o processo de avaliação.
+                Quanto mais informação você já tiver, mais fácil fica uma análise inicial objetiva.
               </p>
 
               <div class="answers">
-                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Sim', 4, this)">Sim</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Alguns', 4, this)">Alguns</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Nenhum', 4, this)">Nenhum</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Sim, já tenho alguns documentos', 4, this)">Sim, já tenho alguns documentos</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Tenho informações, mas não documentos', 4, this)">Tenho informações, mas não documentos</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Não tenho nada ainda', 4, this)">Não tenho nada ainda</button>
               </div>
             </div>
 
             <div class="step" id="step4">
               <span class="step-tag">Pergunta 4</span>
-              <h2>Em qual estado você mora?</h2>
+              <h2>Você gostaria que um especialista analisasse seu caso e te orientasse?</h2>
               <p class="step-text">
-                Isso ajuda a organizar o atendimento inicial do seu caso.
+                Se fizer sentido para você, um especialista pode olhar seu caso e indicar os próximos passos.
               </p>
 
-              <div class="field-group">
-                <input id="state" type="text" placeholder="Digite seu estado" />
-                <button type="button" class="primary-btn" onclick="nextStep()">Continuar</button>
+              <div class="answers">
+                <button type="button" class="answer-btn" onclick="selectAnswer('state', 'Sim, quero ajuda', 5, this)">Sim, quero ajuda</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('state', 'Talvez', 5, this)">Talvez</button>
+                <button type="button" class="answer-btn" onclick="selectAnswer('state', 'Não', 5, this)">Não</button>
               </div>
             </div>
 
             <div class="step" id="step5">
               <span class="step-tag">Última etapa</span>
-              <h2>Receba sua análise gratuita</h2>
+              <h2>Um especialista vai analisar seu caso e te chamar no WhatsApp nas próximas horas</h2>
               <p class="step-text">
-                Preencha seus dados para que um especialista entre em contato com você.
+                Preencha seus dados para receber sua análise inicial e entender os próximos passos do seu caso.
               </p>
 
               <div class="field-group">

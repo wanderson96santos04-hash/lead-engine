@@ -5,11 +5,13 @@ let currentStep = 1;
 const totalSteps = 5;
 let isSubmitting = false;
 
+// Mantive as mesmas chaves para não quebrar o backend.
+// Só mudamos o significado delas no quiz e nas mensagens.
 const quizAnswers = {
-  surname_italian: "",
-  ancestor_born_italy: "",
-  family_documents: "",
-  state: ""
+  surname_italian: "",        // Quando gostaria de iniciar
+  ancestor_born_italy: "",   // Interesse em investir
+  family_documents: "",      // Documentos / informações
+  state: ""                  // Interesse em ajuda especializada
 };
 
 function updateProgress() {
@@ -76,21 +78,6 @@ function selectAnswer(field, value, nextStepNumber, buttonElement) {
 }
 
 function nextStep() {
-  if (currentStep === 4) {
-    const stateInput = document.getElementById("state");
-    const stateValue = stateInput ? stateInput.value.trim() : "";
-
-    if (!stateValue) {
-      alert("Digite seu estado para continuar.");
-      if (stateInput) stateInput.focus();
-      return;
-    }
-
-    quizAnswers.state = stateValue;
-    goToStep(5);
-    return;
-  }
-
   if (currentStep < totalSteps) {
     goToStep(currentStep + 1);
   }
@@ -101,10 +88,10 @@ function buildWhatsAppMessage(name, phone) {
 
 Nome: ${name}
 Telefone: ${phone}
-Sobrenome italiano na família: ${quizAnswers.surname_italian || "-"}
-Antepassado nasceu na Itália: ${quizAnswers.ancestor_born_italy || "-"}
-Documentos da família: ${quizAnswers.family_documents || "-"}
-Estado: ${quizAnswers.state || "-"}
+Quando gostaria de iniciar: ${quizAnswers.surname_italian || "-"}
+Interesse em investir entre R$5.000 e R$20.000: ${quizAnswers.ancestor_born_italy || "-"}
+Documentos ou informações sobre antepassados: ${quizAnswers.family_documents || "-"}
+Deseja ajuda de um especialista: ${quizAnswers.state || "-"}
 `;
 }
 
