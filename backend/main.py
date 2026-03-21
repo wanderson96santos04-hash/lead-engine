@@ -2,8 +2,6 @@ import os
 import re
 import sqlite3
 import requests
-import smtplib
-import ssl
 import logging
 
 from datetime import datetime
@@ -11,9 +9,6 @@ from typing import Optional
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.utils import formatdate
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
@@ -45,10 +40,10 @@ WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN", "")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID", "")
 WHATSAPP_DESTINO = os.getenv("WHATSAPP_DESTINO", "")
 
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 587
-EMAIL_USER = (os.getenv("EMAIL_USER") or "").strip()
-EMAIL_PASS = (os.getenv("EMAIL_PASS") or "").strip()
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
+BREVO_API_KEY = (os.getenv("BREVO_API_KEY") or "").strip()
+EMAIL_FROM = (os.getenv("EMAIL_FROM") or "").strip()
+EMAIL_FROM_NAME = (os.getenv("EMAIL_FROM_NAME") or "Análise Cidadania Italiana").strip()
 EMAIL_TO = (os.getenv("EMAIL_TO") or "").strip()
 EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 
@@ -121,9 +116,9 @@ Data: {lead_data.get("created_at", "-")}
 
 def log_email_config_status():
     logger.info(
-        "EMAIL CONFIG | EMAIL_USER=%s | EMAIL_PASS=%s | EMAIL_TO=%s | EMAIL_TIMEOUT=%s",
-        "OK" if EMAIL_USER else "MISSING",
-        "OK" if EMAIL_PASS else "MISSING",
+        "EMAIL CONFIG | BREVO_API_KEY=%s | EMAIL_FROM=%s | EMAIL_TO=%s | EMAIL_TIMEOUT=%s",
+        "OK" if BREVO_API_KEY else "MISSING",
+        "OK" if EMAIL_FROM else "MISSING",
         "OK" if EMAIL_TO else "MISSING",
         EMAIL_TIMEOUT,
     )
@@ -165,54 +160,81 @@ def send_whatsapp(lead_data: dict) -> bool:
 
 
 def send_email_lead(lead_data: dict) -> bool:
-    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_TO:
+    if not BREVO_API_KEY or not EMAIL_FROM or not EMAIL_TO:
         logger.error(
-            "Email não configurado. Pulando envio. EMAIL_USER=%s EMAIL_PASS=%s EMAIL_TO=%s",
-            "OK" if EMAIL_USER else "MISSING",
-            "OK" if EMAIL_PASS else "MISSING",
+            "Email não configurado. Pulando envio. BREVO_API_KEY=%s EMAIL_FROM=%s EMAIL_TO=%s",
+            "OK" if BREVO_API_KEY else "MISSING",
+            "OK" if EMAIL_FROM else "MISSING",
             "OK" if EMAIL_TO else "MISSING",
         )
         return False
 
-    assunto = "Novo Lead - Cidadania Italiana"
-    corpo = format_lead_message(lead_data)
-    server = None
+    subject = "Novo Lead - Cidadania Italiana"
+    body_text = format_lead_message(lead_data)
+    body_html = f"""
+    <html>
+        <body>
+            <h2>Novo Lead - Cidadania Italiana</h2>
+            <p><strong>Nome:</strong> {lead_data.get("name", "-")}</p>
+            <p><strong>Telefone:</strong> {lead_data.get("phone", "-")}</p>
+            <p><strong>Tem sobrenome italiano:</strong> {lead_data.get("surname_italian", "-")}</p>
+            <p><strong>Antepassado nasceu na Itália:</strong> {lead_data.get("ancestor_born_italy", "-")}</p>
+            <p><strong>Possui documentos:</strong> {lead_data.get("family_documents", "-")}</p>
+            <p><strong>Estado:</strong> {lead_data.get("state", "-")}</p>
+            <p><strong>Data:</strong> {lead_data.get("created_at", "-")}</p>
+        </body>
+    </html>
+    """.strip()
+
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+    }
+
+    payload = {
+        "sender": {
+            "name": EMAIL_FROM_NAME,
+            "email": EMAIL_FROM,
+        },
+        "to": [
+            {
+                "email": EMAIL_TO,
+                "name": "Recebimento de Leads",
+            }
+        ],
+        "subject": subject,
+        "textContent": body_text,
+        "htmlContent": body_html,
+    }
 
     try:
-        msg = MIMEMultipart()
-        msg["From"] = EMAIL_USER
-        msg["To"] = EMAIL_TO
-        msg["Subject"] = assunto
-        msg["Date"] = formatdate(localtime=True)
-        msg.attach(MIMEText(corpo, "plain", "utf-8"))
+        response = requests.post(
+            BREVO_API_URL,
+            headers=headers,
+            json=payload,
+            timeout=EMAIL_TIMEOUT,
+        )
 
-        context = ssl.create_default_context()
+        if response.status_code in (200, 201, 202):
+            try:
+                result = response.json()
+            except Exception:
+                result = {}
 
-        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=EMAIL_TIMEOUT)
-        server.ehlo()
-        server.starttls(context=context)
-        server.ehlo()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.send_message(msg)
+            logger.info("Email enviado com sucesso | response=%s", result)
+            return True
 
-        logger.info("Email enviado com sucesso")
-        return True
-
-    except smtplib.SMTPAuthenticationError as e:
-        logger.exception("Erro ao enviar email: autenticação SMTP falhou: %s", str(e))
+        logger.error(
+            "Erro ao enviar email | status=%s | body=%s",
+            response.status_code,
+            response.text,
+        )
         return False
-    except smtplib.SMTPException as e:
-        logger.exception("Erro ao enviar email: falha SMTP: %s", str(e))
-        return False
-    except Exception as e:
+
+    except requests.RequestException as e:
         logger.exception("Erro ao enviar email: %s", str(e))
         return False
-    finally:
-        if server is not None:
-            try:
-                server.quit()
-            except Exception:
-                pass
 
 
 init_db()
