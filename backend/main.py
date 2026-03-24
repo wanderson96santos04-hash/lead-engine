@@ -6,7 +6,7 @@ import logging
 
 from datetime import datetime
 from typing import Optional
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, Response
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -249,6 +249,11 @@ def startup_event():
 @app.get("/")
 def healthcheck():
     return {"status": "ok"}
+
+
+@app.head("/")
+def healthcheck_head():
+    return Response(status_code=200)
 
 
 @app.post("/lead")

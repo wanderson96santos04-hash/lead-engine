@@ -313,28 +313,28 @@ def intro_paragraphs(keyword: str, cluster: str) -> list[str]:
     intros = {
         "eligibility": [
             f"Quem pesquisa sobre {keyword} normalmente quer descobrir se existe uma chance real de reconhecimento da cidadania italiana dentro da própria família.",
-            "Essa dúvida é comum porque muitas famílias brasileiras conhecem sua origem italiana, mas não sabem se isso se transforma em um caso viável na prática.",
-            "Antes de pensar em custos ou prazos, a prioridade é entender elegibilidade, linha familiar e força documental."
+            "O que muita gente não sabe é que sinais isolados, como sobrenome ou histórias antigas da família, podem gerar falsa segurança ou fazer uma oportunidade real passar despercebida.",
+            "Antes de concluir que tem ou não direito, vale entender a linha familiar, a força documental e se o seu caso realmente merece uma análise mais aprofundada."
         ],
         "documents": [
             f"Quem procura por {keyword} geralmente já percebeu que a documentação é uma das partes mais importantes da cidadania italiana.",
-            "Na prática, o problema não é apenas reunir papéis. O ponto central é saber quais documentos realmente fazem diferença e quais erros podem travar o caso.",
-            "Uma triagem bem feita nessa fase economiza tempo, reduz retrabalho e melhora muito a qualidade da decisão."
+            "O problema é que muitos casos atrasam porque a pessoa junta papéis sem saber o que realmente importa, ou descobre tarde demais erros pequenos que viram grandes obstáculos.",
+            "Antes de gastar com certidões, traduções e correções, faz diferença entender quais documentos indicam potencial real e quais pontos podem travar o processo."
         ],
         "process": [
             f"Buscar por {keyword} mostra uma intenção clara de entender como o processo funciona fora da teoria.",
-            "O caminho para a cidadania italiana muda conforme a documentação, a linha familiar e a estratégia adotada.",
-            "Por isso, compreender a lógica do processo antes de começar evita atrasos e decisões ruins."
+            "Mas o que parece simples no conteúdo genérico muitas vezes se complica quando entram documentos, estratégia e escolha do caminho mais adequado.",
+            "Antes de avançar por impulso, vale identificar o que pode atrasar seu caso e qual rota realmente faz sentido para a sua situação."
         ],
         "cost": [
             f"Quando a busca é por {keyword}, o interesse normalmente está mais próximo da decisão do que da simples curiosidade.",
-            "O custo da cidadania italiana não depende só de preço inicial. Ele varia conforme complexidade documental, urgência e estratégia.",
-            "Avaliar investimento sem olhar viabilidade quase sempre gera expectativa errada."
+            "Muita gente olha apenas para preço inicial e ignora o que mais pesa no custo real: documentos, retificações, tempo perdido e decisões tomadas no escuro.",
+            "Antes de avaliar investimento, o mais importante é descobrir se o caso tem viabilidade e qual estratégia evita gastar dinheiro do jeito errado."
         ],
         "general": [
             f"{human_title(keyword)} é um tema que mistura origem familiar, documentação e estratégia.",
-            "Na prática, os melhores resultados aparecem quando a pessoa entende seu caso por etapas: elegibilidade, documentos, caminho possível e próximos passos.",
-            "Esse conteúdo foi estruturado para responder exatamente essas dúvidas de forma útil e direta."
+            "O que atrapalha muita gente é tentar entender tudo de uma vez, sem separar o que é curiosidade, o que é indício real e o que exige confirmação documental.",
+            "Antes de seguir sozinho, vale organizar os sinais do seu caso e descobrir se existe uma oportunidade concreta de avanço."
         ],
     }
     return intros.get(cluster, intros["general"])
@@ -431,18 +431,18 @@ def section_next_step(cluster: str) -> str:
 
 def build_lead_block_middle(cluster: str) -> str:
     titles = {
-        "cost": "Descubra o custo real do seu caso",
-        "documents": "Veja se sua documentação tem potencial",
-        "eligibility": "Descubra se o seu caso pode ter direito",
-        "process": "Entenda qual caminho faz mais sentido",
-        "general": "Receba uma análise inicial gratuita",
+        "cost": "Descubra se o custo do seu caso pode ser menor do que parece",
+        "documents": "Veja se a sua documentação pode ter potencial real",
+        "eligibility": "Descubra se você pode estar deixando uma oportunidade passar",
+        "process": "Entenda qual caminho pode evitar atraso e retrabalho",
+        "general": "Receba uma análise inicial gratuita do seu caso",
     }
 
     descriptions = {
-        "cost": "Cada processo tem um custo diferente. O valor real depende da sua documentação, da linha familiar e da estratégia mais adequada.",
-        "documents": "Antes de gastar com certidões e retificações, vale entender se os seus documentos já mostram um bom potencial de avanço.",
-        "eligibility": "Ter sobrenome italiano ou origem familiar não basta sozinho. Uma análise inicial ajuda a separar curiosidade de oportunidade real.",
-        "process": "Nem todo caso deve seguir o mesmo caminho. Uma triagem inicial ajuda a evitar erros e economiza tempo.",
+        "cost": "Cada processo tem uma realidade diferente. Em muitos casos, o erro está em gastar cedo demais sem validar viabilidade, documentos e estratégia.",
+        "documents": "Antes de investir em certidões, traduções ou retificações, vale descobrir se os documentos que você já tem apontam um bom potencial de avanço.",
+        "eligibility": "Muitas pessoas acreditam que não têm direito à cidadania italiana e só descobrem o contrário depois de uma análise inicial bem feita.",
+        "process": "Nem todo caso deve seguir o mesmo caminho. Uma triagem inicial ajuda a reduzir erro, economiza tempo e evita decisões tomadas no escuro.",
         "general": "Uma análise inicial gratuita ajuda a identificar os próximos passos mais inteligentes para o seu caso.",
     }
 
@@ -453,19 +453,19 @@ def build_lead_block_middle(cluster: str) -> str:
     <div class="lead-box">
       <h3>{escape(title)}</h3>
       <p>{escape(description)}</p>
-      <p><strong>Evite perder tempo e dinheiro com decisões feitas no escuro.</strong></p>
-      <a class="lead-btn" href="/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+      <p><strong>Antes de continuar, descubra se o seu caso realmente pode avançar e evite perder tempo com decisões erradas.</strong></p>
+      <a class="lead-btn" href="/#quiz">COMEÇAR ANÁLISE GRATUITA</a>
     </div>
     """
 
 
 def build_lead_block_final(cluster: str) -> str:
     titles = {
-        "cost": "Antes de decidir pelo preço",
-        "documents": "Antes de sair pedindo documentos",
+        "cost": "Antes de decidir com base só no preço",
+        "documents": "Antes de sair pedindo documentos e gastando à toa",
         "eligibility": "Antes de concluir que tem ou não direito",
-        "process": "Antes de escolher o caminho do processo",
-        "general": "Antes de tomar qualquer decisão",
+        "process": "Antes de escolher qualquer caminho para o processo",
+        "general": "Antes de tomar qualquer decisão sobre o seu caso",
     }
 
     descriptions = {
@@ -483,8 +483,8 @@ def build_lead_block_final(cluster: str) -> str:
     <div class="lead-box">
       <h2>{escape(title)}</h2>
       <p>{escape(description)}</p>
-      <p>Responda poucas perguntas e receba uma triagem inicial gratuita para entender se vale a pena aprofundar o seu caso.</p>
-      <a class="lead-btn" href="/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+      <p>Você pode estar mais perto da cidadania italiana do que imagina — ou prestes a perder tempo e dinheiro com escolhas erradas. Responda poucas perguntas e receba uma triagem inicial gratuita.</p>
+      <a class="lead-btn" href="/#quiz">DESCUBRIR SE O MEU CASO PODE AVANÇAR</a>
     </div>
     """
 
@@ -609,7 +609,7 @@ def build_articles_index(rows: list[dict]) -> str:
         cards.append(f"""
         <a class="article-card" href="{escape(slug)}.html">
           <h2>{escape(title)}</h2>
-          <p>Conteúdo informativo sobre {escape(row["keyword"])} com foco em triagem inicial e geração de leads qualificados.</p>
+          <p>Entenda os pontos principais, evite erros comuns e descubra quando vale a pena fazer uma análise inicial gratuita do seu caso.</p>
           <div class="card-meta">
             <span>{escape(intent)}</span>
             <span>{escape(cluster)}</span>
@@ -770,14 +770,14 @@ def build_articles_index(rows: list[dict]) -> str:
   <header>
     <div class="container header-inner">
       <div class="brand">Cidadania Italiana<span>Online</span></div>
-      <a class="header-cta" href="https://analisecidadaniaitaliana.com/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+      <a class="header-cta" href="https://analisecidadaniaitaliana.com/#quiz">COMEÇAR ANÁLISE GRATUITA</a>
     </div>
   </header>
 
   <main class="container">
     <h1>Artigos sobre cidadania italiana</h1>
     <p class="lead">
-      Conteúdos informativos para ajudar na triagem inicial, esclarecer dúvidas frequentes e gerar leads qualificados.
+      Conteúdos informativos para ajudar na triagem inicial, esclarecer dúvidas frequentes e mostrar quando vale a pena avançar para uma análise gratuita.
     </p>
 
     <section class="articles-grid">
@@ -858,7 +858,7 @@ def build_article_html(row: dict, all_rows: list[dict]) -> str:
   <header>
     <div class="container header-inner">
       <div class="brand">Cidadania Italiana<span>Online</span></div>
-      <a class="header-cta" href="https://analisecidadaniaitaliana.com/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+      <a class="header-cta" href="https://analisecidadaniaitaliana.com/#quiz">COMEÇAR ANÁLISE GRATUITA</a>
     </div>
   </header>
 
@@ -871,8 +871,7 @@ def build_article_html(row: dict, all_rows: list[dict]) -> str:
       <h1>{escape(title)}</h1>
 
       <p class="lead">
-        Entenda os pontos centrais sobre {escape(keyword)}, evite erros comuns e descubra
-        quando vale a pena fazer uma análise inicial do seu caso.
+        Entenda os pontos centrais sobre {escape(keyword)}, veja o que pode atrasar ou enfraquecer o caso e descubra quando vale a pena fazer uma análise inicial gratuita.
       </p>
 
       <div class="meta">
@@ -933,7 +932,7 @@ def build_article_html(row: dict, all_rows: list[dict]) -> str:
         <p>
           Responda poucas perguntas e veja se existem sinais iniciais de viabilidade para a sua cidadania italiana.
         </p>
-        <a class="cta-btn" href="https://analisecidadaniaitaliana.com/#quiz">Descobrir se tenho direito à cidadania italiana (grátis)</a>
+        <a class="cta-btn" href="https://analisecidadaniaitaliana.com/#quiz">COMEÇAR ANÁLISE GRATUITA</a>
       </div>
 
       {related_articles_html}

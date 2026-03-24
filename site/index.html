@@ -3,12 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Cidadania Italiana Online | Verificação Gratuita</title>
+
   <meta
     name="description"
     content="Descubra em 1 minuto se você pode ter direito à cidadania italiana. Faça sua verificação gratuita e receba uma análise inicial."
   />
 
+  <!-- FAVICON -->
+  <link rel="shortcut icon" href="/favicon.ico?v=2" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico?v=2" type="image/x-icon">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2">
+  <link rel="manifest" href="/site.webmanifest?v=2">
+
+  <!-- FONTES -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -18,15 +29,18 @@
 
   <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
   <header class="site-header">
     <div class="container header-inner">
       <a href="#top" class="brand" aria-label="Cidadania Italiana Online">
-        <div class="brand-mark">
-          <span class="brand-mark-top"></span>
-          <span class="brand-mark-center"></span>
-          <span class="brand-mark-bottom"></span>
-        </div>
+        <img
+          src="/logo.png"
+          alt="Cidadania Italiana Online"
+          class="logo-img"
+          width="46"
+          height="52"
+        />
 
         <div class="brand-text">
           <strong>Cidadania Italiana</strong>
@@ -34,7 +48,7 @@
         </div>
       </a>
 
-      <nav class="main-nav" aria-label="Menu principal">
+      <nav class="main-nav">
         <a href="#quiz">Cidadania Italiana</a>
         <a href="#quiz">Quem tem direito</a>
         <a href="#quiz">Documentos</a>
@@ -48,16 +62,24 @@
     <section class="hero-section">
       <div class="container hero-grid">
         <div class="hero-content">
-          <span class="eyebrow">Análise inicial gratuita</span>
+          <span class="eyebrow">Análise gratuita por tempo limitado</span>
 
           <h1>Descubra em 1 minuto se você tem direito à cidadania italiana</h1>
+
+          <p class="hero-warning">
+            Muitas pessoas perdem tempo e dinheiro por não entender se realmente têm direito antes de começar.
+          </p>
 
           <p class="hero-text">
             Milhões de brasileiros têm direito à cidadania italiana e não sabem.
             Faça uma verificação gratuita agora.
           </p>
 
-          <a href="#quiz" class="hero-cta">COMEÇAR ANÁLISE GRATUITA</a>
+          <a href="#quiz" class="hero-cta">DESCOBRIR MEU DIREITO AGORA</a>
+
+          <p class="hero-proof">
+            Mais de 1.000 brasileiros já fizeram essa verificação gratuita.
+          </p>
 
           <div class="hero-trust">
             <span>Atendimento especializado</span>
@@ -84,13 +106,10 @@
     <section class="quiz-section" id="quiz">
       <div class="container">
         <div class="quiz-shell">
+
           <div class="quiz-top">
-            <div>
-              <span id="progressText">Etapa 1 de 5</span>
-            </div>
-            <div>
-              <span>Leva menos de 1 minuto</span>
-            </div>
+            <span id="progressText">Etapa 1 de 5</span>
+            <span>Leva menos de 1 minuto</span>
           </div>
 
           <div class="progress-bar">
@@ -98,6 +117,7 @@
           </div>
 
           <div class="quiz-container">
+
             <div class="step active" id="step1">
               <span class="step-tag">Pergunta 1</span>
               <h2>Quando você gostaria de iniciar seu processo de cidadania?</h2>
@@ -106,9 +126,9 @@
               </p>
 
               <div class="answers">
-                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Imediatamente', 2, this)">Imediatamente</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Nos próximos 3 meses', 2, this)">Nos próximos 3 meses</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('surname_italian', 'Ainda estou pesquisando', 2, this)">Ainda estou pesquisando</button>
+                <button class="answer-btn" onclick="selectAnswer('surname_italian','Imediatamente',2,this)">Imediatamente</button>
+                <button class="answer-btn" onclick="selectAnswer('surname_italian','Nos próximos 3 meses',2,this)">Nos próximos 3 meses</button>
+                <button class="answer-btn" onclick="selectAnswer('surname_italian','Ainda estou pesquisando',2,this)">Ainda estou pesquisando</button>
               </div>
             </div>
 
@@ -116,69 +136,68 @@
               <span class="step-tag">Pergunta 2</span>
               <h2>O processo pode variar entre R$5.000 e R$20.000. Você tem interesse em investir nesse valor?</h2>
               <p class="step-text">
-                Essa informação ajuda a identificar se faz sentido avançar para uma orientação mais detalhada.
+                Isso ajuda a entender se vale avançar para análise completa.
               </p>
 
               <div class="answers">
-                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Sim', 3, this)">Sim</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Estou me planejando', 3, this)">Estou me planejando</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('ancestor_born_italy', 'Não', 3, this)">Não</button>
+                <button class="answer-btn" onclick="selectAnswer('ancestor_born_italy','Sim',3,this)">Sim</button>
+                <button class="answer-btn" onclick="selectAnswer('ancestor_born_italy','Estou me planejando',3,this)">Estou me planejando</button>
+                <button class="answer-btn" onclick="selectAnswer('ancestor_born_italy','Não',3,this)">Não</button>
               </div>
             </div>
 
             <div class="step" id="step3">
               <span class="step-tag">Pergunta 3</span>
-              <h2>Você já possui documentos ou informações sobre seus antepassados?</h2>
-              <p class="step-text">
-                Quanto mais informação você já tiver, mais fácil fica uma análise inicial objetiva.
-              </p>
+              <h2>Você já possui documentos ou informações da família?</h2>
 
               <div class="answers">
-                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Sim, já tenho alguns documentos', 4, this)">Sim, já tenho alguns documentos</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Tenho informações, mas não documentos', 4, this)">Tenho informações, mas não documentos</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('family_documents', 'Não tenho nada ainda', 4, this)">Não tenho nada ainda</button>
+                <button class="answer-btn" onclick="selectAnswer('family_documents','Sim, já tenho alguns documentos',4,this)">Sim</button>
+                <button class="answer-btn" onclick="selectAnswer('family_documents','Tenho informações, mas não documentos',4,this)">Tenho informações</button>
+                <button class="answer-btn" onclick="selectAnswer('family_documents','Não tenho nada ainda',4,this)">Não tenho</button>
               </div>
             </div>
 
             <div class="step" id="step4">
               <span class="step-tag">Pergunta 4</span>
-              <h2>Você gostaria que um especialista analisasse seu caso e te orientasse?</h2>
-              <p class="step-text">
-                Se fizer sentido para você, um especialista pode olhar seu caso e indicar os próximos passos.
-              </p>
+              <h2>Você gostaria que um especialista analisasse seu caso?</h2>
 
               <div class="answers">
-                <button type="button" class="answer-btn" onclick="selectAnswer('state', 'Sim, quero ajuda', 5, this)">Sim, quero ajuda</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('state', 'Talvez', 5, this)">Talvez</button>
-                <button type="button" class="answer-btn" onclick="selectAnswer('state', 'Não', 5, this)">Não</button>
+                <button class="answer-btn" onclick="selectAnswer('state','Sim, quero ajuda',5,this)">Sim</button>
+                <button class="answer-btn" onclick="selectAnswer('state','Talvez',5,this)">Talvez</button>
+                <button class="answer-btn" onclick="selectAnswer('state','Não',5,this)">Não</button>
               </div>
             </div>
 
             <div class="step" id="step5">
               <span class="step-tag">Última etapa</span>
+
               <h2>Um especialista vai analisar seu caso e te chamar no WhatsApp nas próximas horas</h2>
+
               <p class="step-text">
-                Preencha seus dados para receber sua análise inicial e entender os próximos passos do seu caso.
+                Preencha seus dados para receber sua análise inicial.
               </p>
 
               <div class="field-group">
                 <input id="name" type="text" placeholder="Seu nome" />
                 <input id="phone" type="text" placeholder="Seu WhatsApp" />
-                <button type="button" class="primary-btn" onclick="sendLead()">Receber análise gratuita</button>
+                <button class="primary-btn" onclick="sendLead()">Receber análise gratuita</button>
               </div>
 
               <p class="privacy-note">
-                Seus dados serão usados apenas para contato relacionado à sua análise.
+                Seus dados serão usados apenas para contato.
+              </p>
+
+              <p class="quiz-trust">
+                Seus dados são usados apenas para contato. Sem spam.
               </p>
             </div>
 
             <div id="success" class="success">
               <div class="success-icon">✓</div>
               <h2>Dados recebidos com sucesso</h2>
-              <p>
-                Em breve, um especialista poderá entrar em contato para dar continuidade à sua análise inicial.
-              </p>
+              <p>Em breve você será chamado no WhatsApp.</p>
             </div>
+
           </div>
         </div>
       </div>

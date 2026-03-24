@@ -1,9 +1,12 @@
 @echo off
 
 echo Configurando credenciais FTP...
-set FTP_HOST=46.202.183.214
+set FTP_HOST=srv1849-files.hstgr.io
 set FTP_USER=u935013836.analisecidadaniaitaliana.com
 set FTP_PASSWORD=W123@ftp
+
+echo Gerando 5 novas keywords SEO...
+python daily_keywords.py
 
 echo Limpando artigos antigos...
 del ..\articles\*.html
