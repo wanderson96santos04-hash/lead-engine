@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
 import sqlite3
 from datetime import datetime
@@ -16,11 +16,11 @@ async def root():
 
 @app.head("/")
 async def root_head():
-    return {"status": "ok"}
+    return Response(status_code=200)
 
 @app.head("/lead")
 async def lead_head():
-    return {"status": "ok"}
+    return Response(status_code=200)
 # =========================
 
 
