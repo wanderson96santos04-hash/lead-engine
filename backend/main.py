@@ -161,30 +161,11 @@ def send_whatsapp(lead_data: dict) -> bool:
 
 def send_email_lead(lead_data: dict) -> bool:
     if not BREVO_API_KEY or not EMAIL_FROM or not EMAIL_TO:
-        logger.error(
-            "Email não configurado. Pulando envio. BREVO_API_KEY=%s EMAIL_FROM=%s EMAIL_TO=%s",
-            "OK" if BREVO_API_KEY else "MISSING",
-            "OK" if EMAIL_FROM else "MISSING",
-            "OK" if EMAIL_TO else "MISSING",
-        )
+        logger.error("Email não configurado. Pulando envio.")
         return False
 
     subject = "Novo Lead - Cidadania Italiana"
     body_text = format_lead_message(lead_data)
-    body_html = f"""
-    <html>
-        <body>
-            <h2>Novo Lead - Cidadania Italiana</h2>
-            <p><strong>Nome:</strong> {lead_data.get("name", "-")}</p>
-            <p><strong>Telefone:</strong> {lead_data.get("phone", "-")}</p>
-            <p><strong>Quando gostaria de iniciar:</strong> {lead_data.get("surname_italian", "-")}</p>
-            <p><strong>Interesse em investir entre R$5.000 e R$20.000:</strong> {lead_data.get("ancestor_born_italy", "-")}</p>
-            <p><strong>Documentos ou informações sobre antepassados:</strong> {lead_data.get("family_documents", "-")}</p>
-            <p><strong>Deseja ajuda de um especialista:</strong> {lead_data.get("state", "-")}</p>
-            <p><strong>Data:</strong> {lead_data.get("created_at", "-")}</p>
-        </body>
-    </html>
-    """.strip()
 
     headers = {
         "accept": "application/json",
@@ -193,47 +174,16 @@ def send_email_lead(lead_data: dict) -> bool:
     }
 
     payload = {
-        "sender": {
-            "name": EMAIL_FROM_NAME,
-            "email": EMAIL_FROM,
-        },
-        "to": [
-            {
-                "email": EMAIL_TO,
-                "name": "Recebimento de Leads",
-            }
-        ],
+        "sender": {"name": EMAIL_FROM_NAME, "email": EMAIL_FROM},
+        "to": [{"email": EMAIL_TO, "name": "Recebimento de Leads"}],
         "subject": subject,
         "textContent": body_text,
-        "htmlContent": body_html,
     }
 
     try:
-        response = requests.post(
-            BREVO_API_URL,
-            headers=headers,
-            json=payload,
-            timeout=EMAIL_TIMEOUT,
-        )
-
-        if response.status_code in (200, 201, 202):
-            try:
-                result = response.json()
-            except Exception:
-                result = {}
-
-            logger.info("Email enviado com sucesso | response=%s", result)
-            return True
-
-        logger.error(
-            "Erro ao enviar email | status=%s | body=%s",
-            response.status_code,
-            response.text,
-        )
-        return False
-
-    except requests.RequestException as e:
-        logger.exception("Erro ao enviar email: %s", str(e))
+        response = requests.post(BREVO_API_URL, headers=headers, json=payload, timeout=EMAIL_TIMEOUT)
+        return response.status_code in (200, 201, 202)
+    except Exception:
         return False
 
 
@@ -246,6 +196,7 @@ def startup_event():
     log_email_config_status()
 
 
+# 🔥 MANTIDO (não mexi)
 @app.get("/")
 def healthcheck():
     return {"status": "ok"}
@@ -253,6 +204,17 @@ def healthcheck():
 
 @app.head("/")
 def healthcheck_head():
+    return Response(status_code=200)
+
+
+# 🔥 NOVO (SOLUÇÃO DEFINITIVA)
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
+
+
+@app.head("/healthz")
+def healthz_head():
     return Response(status_code=200)
 
 
@@ -301,9 +263,6 @@ def receive_lead(lead: Lead, background_tasks: BackgroundTasks):
 
     whatsapp_ok = send_whatsapp(lead_data)
     background_tasks.add_task(send_email_lead, lead_data)
-
-    logger.info("NOVO LEAD: %s", lead_data)
-    logger.info("Envio WhatsApp: %s | Email agendado: True", whatsapp_ok)
 
     return {
         "status": "success",
