@@ -106,10 +106,10 @@ def format_lead_message(lead_data: dict) -> str:
 
 Nome: {lead_data.get("name", "-")}
 Telefone: {lead_data.get("phone", "-")}
-Quando gostaria de iniciar: {lead_data.get("surname_italian", "-")}
-Interesse em investir entre R$5.000 e R$20.000: {lead_data.get("ancestor_born_italy", "-")}
-Documentos ou informações sobre antepassados: {lead_data.get("family_documents", "-")}
-Deseja ajuda de um especialista: {lead_data.get("state", "-")}
+Quando pretende iniciar: {lead_data.get("surname_italian", "-")}
+Antepassado italiano: {lead_data.get("ancestor_born_italy", "-")}
+Documentos / informações: {lead_data.get("family_documents", "-")}
+Condição de investimento: {lead_data.get("state", "-")}
 Data: {lead_data.get("created_at", "-")}
 """.strip()
 
@@ -177,10 +177,10 @@ def send_email_lead(lead_data: dict) -> bool:
             <h2>Novo Lead - Cidadania Italiana</h2>
             <p><strong>Nome:</strong> {lead_data.get("name", "-")}</p>
             <p><strong>Telefone:</strong> {lead_data.get("phone", "-")}</p>
-            <p><strong>Quando gostaria de iniciar:</strong> {lead_data.get("surname_italian", "-")}</p>
-            <p><strong>Interesse em investir entre R$5.000 e R$20.000:</strong> {lead_data.get("ancestor_born_italy", "-")}</p>
-            <p><strong>Documentos ou informações sobre antepassados:</strong> {lead_data.get("family_documents", "-")}</p>
-            <p><strong>Deseja ajuda de um especialista:</strong> {lead_data.get("state", "-")}</p>
+            <p><strong>Quando pretende iniciar:</strong> {lead_data.get("surname_italian", "-")}</p>
+            <p><strong>Antepassado italiano:</strong> {lead_data.get("ancestor_born_italy", "-")}</p>
+            <p><strong>Documentos / informações:</strong> {lead_data.get("family_documents", "-")}</p>
+            <p><strong>Condição de investimento:</strong> {lead_data.get("state", "-")}</p>
             <p><strong>Data:</strong> {lead_data.get("created_at", "-")}</p>
         </body>
     </html>
