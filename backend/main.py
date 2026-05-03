@@ -101,8 +101,39 @@ def clean_phone(phone: str) -> str:
     return re.sub(r"\D", "", phone or "")
 
 
+# 🔥 NOVO — CLASSIFICAÇÃO
+def classificar_lead(lead_data):
+    score = 0
+
+    if "imediato" in lead_data["surname_italian"].lower():
+        score += 2
+    elif "3 meses" in lead_data["surname_italian"].lower():
+        score += 1
+
+    if "sim" in lead_data["ancestor_born_italy"].lower():
+        score += 2
+
+    if "já tenho" in lead_data["family_documents"].lower():
+        score += 2
+
+    if "posso investir" in lead_data["state"].lower():
+        score += 2
+
+    if score >= 6:
+        return "QUENTE 🔥"
+    elif score >= 3:
+        return "MORNO 🟡"
+    else:
+        return "FRIO ❄️"
+
+
+# 🔥 ALTERADO — AGORA MOSTRA CLASSIFICAÇÃO
 def format_lead_message(lead_data: dict) -> str:
+    classificacao = classificar_lead(lead_data)
+
     return f"""Novo Lead - Cidadania Italiana
+
+📊 Classificação: {classificacao}
 
 Nome: {lead_data.get("name", "-")}
 Telefone: {lead_data.get("phone", "-")}
@@ -130,6 +161,7 @@ def send_whatsapp(lead_data: dict) -> bool:
         return False
 
     mensagem = format_lead_message(lead_data)
+
     url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
 
     headers = {
@@ -151,40 +183,39 @@ def send_whatsapp(lead_data: dict) -> bool:
             logger.info("WhatsApp enviado com sucesso")
             return True
 
-        logger.error("Erro ao enviar WhatsApp | status=%s | body=%s", response.status_code, response.text)
+        logger.error("Erro ao enviar WhatsApp | %s", response.text)
         return False
 
     except Exception as e:
-        logger.exception("Falha WhatsApp: %s", str(e))
+        logger.exception("Erro WhatsApp: %s", str(e))
         return False
 
 
 def send_email_lead(lead_data: dict) -> bool:
     if not BREVO_API_KEY or not EMAIL_FROM or not EMAIL_TO:
-        logger.error(
-            "Email não configurado. Pulando envio. BREVO_API_KEY=%s EMAIL_FROM=%s EMAIL_TO=%s",
-            "OK" if BREVO_API_KEY else "MISSING",
-            "OK" if EMAIL_FROM else "MISSING",
-            "OK" if EMAIL_TO else "MISSING",
-        )
+        logger.error("Email não configurado")
         return False
 
-    subject = "Novo Lead - Cidadania Italiana"
+    classificacao = classificar_lead(lead_data)
+
+    subject = f"🔥 Novo Lead {classificacao}"
+
     body_text = format_lead_message(lead_data)
+
     body_html = f"""
     <html>
         <body>
-            <h2>Novo Lead - Cidadania Italiana</h2>
+            <h2>🔥 Novo Lead - {classificacao}</h2>
             <p><strong>Nome:</strong> {lead_data.get("name", "-")}</p>
             <p><strong>Telefone:</strong> {lead_data.get("phone", "-")}</p>
             <p><strong>Quando pretende iniciar:</strong> {lead_data.get("surname_italian", "-")}</p>
             <p><strong>Antepassado italiano:</strong> {lead_data.get("ancestor_born_italy", "-")}</p>
-            <p><strong>Documentos / informações:</strong> {lead_data.get("family_documents", "-")}</p>
-            <p><strong>Condição de investimento:</strong> {lead_data.get("state", "-")}</p>
+            <p><strong>Documentos:</strong> {lead_data.get("family_documents", "-")}</p>
+            <p><strong>Investimento:</strong> {lead_data.get("state", "-")}</p>
             <p><strong>Data:</strong> {lead_data.get("created_at", "-")}</p>
         </body>
     </html>
-    """.strip()
+    """
 
     headers = {
         "accept": "application/json",
@@ -193,47 +224,25 @@ def send_email_lead(lead_data: dict) -> bool:
     }
 
     payload = {
-        "sender": {
-            "name": EMAIL_FROM_NAME,
-            "email": EMAIL_FROM,
-        },
-        "to": [
-            {
-                "email": EMAIL_TO,
-                "name": "Recebimento de Leads",
-            }
-        ],
+        "sender": {"name": EMAIL_FROM_NAME, "email": EMAIL_FROM},
+        "to": [{"email": EMAIL_TO}],
         "subject": subject,
         "textContent": body_text,
         "htmlContent": body_html,
     }
 
     try:
-        response = requests.post(
-            BREVO_API_URL,
-            headers=headers,
-            json=payload,
-            timeout=EMAIL_TIMEOUT,
-        )
+        response = requests.post(BREVO_API_URL, headers=headers, json=payload, timeout=EMAIL_TIMEOUT)
 
         if response.status_code in (200, 201, 202):
-            try:
-                result = response.json()
-            except Exception:
-                result = {}
-
-            logger.info("Email enviado com sucesso | response=%s", result)
+            logger.info("Email enviado com sucesso")
             return True
 
-        logger.error(
-            "Erro ao enviar email | status=%s | body=%s",
-            response.status_code,
-            response.text,
-        )
+        logger.error("Erro email: %s", response.text)
         return False
 
-    except requests.RequestException as e:
-        logger.exception("Erro ao enviar email: %s", str(e))
+    except Exception as e:
+        logger.exception("Erro email: %s", str(e))
         return False
 
 
@@ -299,14 +308,9 @@ def receive_lead(lead: Lead, background_tasks: BackgroundTasks):
     conn.commit()
     conn.close()
 
-    whatsapp_ok = send_whatsapp(lead_data)
+    send_whatsapp(lead_data)
     background_tasks.add_task(send_email_lead, lead_data)
 
     logger.info("NOVO LEAD: %s", lead_data)
-    logger.info("Envio WhatsApp: %s | Email agendado: True", whatsapp_ok)
 
-    return {
-        "status": "success",
-        "whatsapp_sent": whatsapp_ok,
-        "email_queued": True,
-    }
+    return {"status": "success"}
