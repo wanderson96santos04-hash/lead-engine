@@ -101,47 +101,71 @@ def clean_phone(phone: str) -> str:
     return re.sub(r"\D", "", phone or "")
 
 
-# 🔥 NOVO — CLASSIFICAÇÃO
 def classificar_lead(lead_data):
     score = 0
 
-    if "imediato" in lead_data["surname_italian"].lower():
+    prazo = lead_data["surname_italian"].lower()
+    antepassado = lead_data["ancestor_born_italy"].lower()
+    documentos = lead_data["family_documents"].lower()
+    investimento = lead_data["state"].lower()
+
+    if "imediato" in prazo or "imediatamente" in prazo:
+        score += 3
+    elif "3 meses" in prazo:
         score += 2
-    elif "3 meses" in lead_data["surname_italian"].lower():
+    elif "6 meses" in prazo:
         score += 1
 
-    if "sim" in lead_data["ancestor_born_italy"].lower():
+    if "sim" in antepassado or "tenho certeza" in antepassado:
+        score += 2
+    elif "acredito" in antepassado:
+        score += 1
+
+    if "já tenho" in documentos or "tenho documentos" in documentos:
+        score += 2
+    elif "nomes" in documentos or "dados" in documentos:
+        score += 1
+
+    if "posso investir" in investimento or "investir agora" in investimento or "agora" in investimento:
+        score += 3
+    elif "breve" in investimento:
         score += 2
 
-    if "já tenho" in lead_data["family_documents"].lower():
-        score += 2
-
-    if "posso investir" in lead_data["state"].lower():
-        score += 2
-
-    if score >= 6:
-        return "QUENTE 🔥"
-    elif score >= 3:
-        return "MORNO 🟡"
+    if score >= 8:
+        return "QUENTE 🔥", score
+    elif score >= 5:
+        return "MORNO 🟡", score
     else:
-        return "FRIO ❄️"
+        return "FRIO ❄️", score
 
 
-# 🔥 ALTERADO — AGORA MOSTRA CLASSIFICAÇÃO
 def format_lead_message(lead_data: dict) -> str:
-    classificacao = classificar_lead(lead_data)
+    classificacao, score = classificar_lead(lead_data)
 
-    return f"""Novo Lead - Cidadania Italiana
+    telefone = lead_data.get("phone", "-")
+    link_whatsapp = f"https://wa.me/{telefone}"
+
+    prioridade = "🚨 PRIORIDADE MÁXIMA" if "QUENTE" in classificacao else "Atendimento normal"
+
+    return f"""🔥 NOVO LEAD QUALIFICADO - CIDADANIA ITALIANA 🔥
 
 📊 Classificação: {classificacao}
+⭐ Score: {score}/10
+🚨 Status: {prioridade}
 
-Nome: {lead_data.get("name", "-")}
-Telefone: {lead_data.get("phone", "-")}
-Quando pretende iniciar: {lead_data.get("surname_italian", "-")}
-Antepassado italiano: {lead_data.get("ancestor_born_italy", "-")}
-Documentos / informações: {lead_data.get("family_documents", "-")}
-Condição de investimento: {lead_data.get("state", "-")}
-Data: {lead_data.get("created_at", "-")}
+👤 Nome: {lead_data.get("name", "-")}
+📞 Telefone: {telefone}
+
+🎯 Intenção do lead:
+- Quando pretende iniciar: {lead_data.get("surname_italian", "-")}
+- Antepassado italiano: {lead_data.get("ancestor_born_italy", "-")}
+- Documentos / informações: {lead_data.get("family_documents", "-")}
+- Condição de investimento: {lead_data.get("state", "-")}
+
+📲 WhatsApp direto:
+{link_whatsapp}
+
+📆 Data: {lead_data.get("created_at", "-")}
 """.strip()
 
 
@@ -196,26 +220,43 @@ def send_email_lead(lead_data: dict) -> bool:
         logger.error("Email não configurado")
         return False
 
-    classificacao = classificar_lead(lead_data)
+    classificacao, score = classificar_lead(lead_data)
+    telefone = lead_data.get("phone", "-")
+    link_whatsapp = f"https://wa.me/{telefone}"
+    prioridade = "🚨 PRIORIDADE MÁXIMA" if "QUENTE" in classificacao else "Atendimento normal"
 
-    subject = f"🔥 Novo Lead {classificacao}"
+    subject = f"{classificacao} | Lead Score {score}/10"
 
     body_text = format_lead_message(lead_data)
 
     body_html = f"""
     <html>
         <body>
-            <h2>🔥 Novo Lead - {classificacao}</h2>
-            <p><strong>Nome:</strong> {lead_data.get("name", "-")}</p>
-            <p><strong>Telefone:</strong> {lead_data.get("phone", "-")}</p>
+            <h2>🔥 NOVO LEAD QUALIFICADO - CIDADANIA ITALIANA 🔥</h2>
+
+            <p><strong>📊 Classificação:</strong> {classificacao}</p>
+            <p><strong>⭐ Score:</strong> {score}/10</p>
+            <p><strong>🚨 Status:</strong> {prioridade}</p>
+
+            <hr>
+
+            <p><strong>👤 Nome:</strong> {lead_data.get("name", "-")}</p>
+            <p><strong>📞 Telefone:</strong> {telefone}</p>
+
+            <hr>
+
             <p><strong>Quando pretende iniciar:</strong> {lead_data.get("surname_italian", "-")}</p>
             <p><strong>Antepassado italiano:</strong> {lead_data.get("ancestor_born_italy", "-")}</p>
-            <p><strong>Documentos:</strong> {lead_data.get("family_documents", "-")}</p>
-            <p><strong>Investimento:</strong> {lead_data.get("state", "-")}</p>
-            <p><strong>Data:</strong> {lead_data.get("created_at", "-")}</p>
+            <p><strong>Documentos / informações:</strong> {lead_data.get("family_documents", "-")}</p>
+            <p><strong>Condição de investimento:</strong> {lead_data.get("state", "-")}</p>
+
+            <hr>
+
+            <p><strong>📲 WhatsApp direto:</strong> <a href="{link_whatsapp}">{link_whatsapp}</a></p>
+            <p><strong>📆 Data:</strong> {lead_data.get("created_at", "-")}</p>
         </body>
     </html>
-    """
+    """.strip()
 
     headers = {
         "accept": "application/json",
